@@ -16,6 +16,8 @@ const initialPrediction: HeartPredictionData = {
   resting_ecg: 0,
   exercise_angina: 0,
   slope: 0,
+  day: 0,
+  hour: 0
 };
 
 
@@ -45,16 +47,19 @@ function App() {
     setPredictionLabel(data.prediction_label);  
 
       // Patient Data form
-    setPredictionData({
-      patient_id: data.patient_id,
-    age: data.age,
-    gender: data.gender,
-    chest_pain_type: data.chest_pain_type,
-    fasting_sugar: data.fasting_sugar,
-    resting_ecg: data.resting_ecg,
-    exercise_angina: data.exercise_angina,
-    slope: data.slope,
-    });
+      setPredictionData({
+        patient_id: data.patient_id,
+        age: data.age,
+        gender: data.gender,
+        chest_pain_type: data.chest_pain_type,
+        fasting_sugar: data.fasting_sugar,
+        resting_ecg: data.resting_ecg,
+        exercise_angina: data.exercise_angina,
+        slope: data.slope,
+        day: data.day,      
+        hour: data.hour,    
+      });
+      
 
     // Update the risk score chart data
     setScores((prevScores) => [...prevScores, data.prediction_score]);

@@ -7,4 +7,6 @@ export interface HeartPredictionData {
   resting_ecg: number;
   exercise_angina: number;
   slope: number;
+  day: number;
+  hour: number;
 }

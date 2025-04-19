@@ -16,7 +16,7 @@ conn = psycopg2.connect(
 conn.autocommit = True
 cur = conn.cursor()
 
-STATIC_PATIENT_ID = 12
+STATIC_PATIENT_ID = 14
 
 # Insert into dim_patient only once
 def insert_dim_patient(patient_id):
@@ -88,9 +88,12 @@ def get_latest_prediction_data(patient_id):
             f.max_heart_rate,
             f.oldpeak,
             f.prediction_score,
-            f.prediction_label
+            f.prediction_label,
+            t.day,
+            t.hour
         FROM dim_patient p
         JOIN fact_predictions f ON p.patient_id = f.patient_id
+        JOIN dim_time t ON f.time_id = t.time_id
         WHERE p.patient_id = %s
         ORDER BY f.time_id DESC
         LIMIT 1;
@@ -113,8 +116,11 @@ def get_latest_prediction_data(patient_id):
             "oldpeak": row[11],
             "prediction_score": row[12],
             "prediction_label": row[13],
+            "day": row[14],
+            "hour": row[15],
         }
     return {}
+
 
 
 
