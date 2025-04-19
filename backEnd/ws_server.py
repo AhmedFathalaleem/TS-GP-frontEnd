@@ -16,7 +16,7 @@ conn = psycopg2.connect(
 conn.autocommit = True
 cur = conn.cursor()
 
-STATIC_PATIENT_ID = 14
+STATIC_PATIENT_ID = 12
 
 # Insert into dim_patient only once
 def insert_dim_patient(patient_id):
@@ -75,25 +75,47 @@ def insert_fact_prediction(patient_id, time_id):
 def get_latest_prediction_data(patient_id):
     cur.execute("""
         SELECT 
-            patient_id, resting_bp, cholesterol, max_heart_rate, oldpeak,
-            prediction_score, prediction_label
-        FROM fact_predictions 
-        WHERE patient_id = %s 
-        ORDER BY time_id DESC 
+            p.patient_id,
+            p.age,
+            p.gender,
+            p.chest_pain_type,
+            p.fasting_sugar,
+            p.resting_ecg,
+            p.exercise_angina,
+            p.slope,
+            f.resting_bp,
+            f.cholesterol,
+            f.max_heart_rate,
+            f.oldpeak,
+            f.prediction_score,
+            f.prediction_label
+        FROM dim_patient p
+        JOIN fact_predictions f ON p.patient_id = f.patient_id
+        WHERE p.patient_id = %s
+        ORDER BY f.time_id DESC
         LIMIT 1;
     """, (patient_id,))
+    
     row = cur.fetchone()
     if row:
         return {
             "patient_id": row[0],
-            "resting_bp": row[1],
-            "cholesterol": row[2],
-            "max_heart_rate": row[3],
-            "oldpeak": row[4],
-            "prediction_score": row[5],
-            "prediction_label": row[6],
+            "age": row[1],
+            "gender": row[2],
+            "chest_pain_type": row[3],
+            "fasting_sugar": row[4],
+            "resting_ecg": row[5],
+            "exercise_angina": row[6],
+            "slope": row[7],
+            "resting_bp": row[8],
+            "cholesterol": row[9],
+            "max_heart_rate": row[10],
+            "oldpeak": row[11],
+            "prediction_score": row[12],
+            "prediction_label": row[13],
         }
     return {}
+
 
 
 # Background task: Insert data every 2s

@@ -14,40 +14,42 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip)
 type RiskChartProps = {
   scores: number[];
   labels: string[];
-  predictionLabel: number;
+  predictionLabel: string;
 };
 
 export default function RiskChart({ scores, labels, predictionLabel }: RiskChartProps) {
-  const riskText = predictionLabel === 1 ? 'HIGH RISK' : 'LOW RISK';
-  const riskColor = predictionLabel === 1 ? 'bg-red-200 text-red-800' : 'bg-green-200 text-green-800';
-
-  const data = {
-    labels,
-    datasets: [
-      {
-        label: 'Risk Score',
-        data: scores,
-        borderColor: 'rgb(75, 192, 192)',
-        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-        tension: 0.4,
+    const latestScore = scores[scores.length - 1] || 0;
+    const isHighRisk = latestScore >= 0.8;
+    const riskText = isHighRisk ? 'HIGH RISK' : 'LOW RISK';
+    const riskColor = isHighRisk ? 'bg-red-200 text-red-800' : 'bg-green-200 text-green-800';
+  
+    const data = {
+      labels,
+      datasets: [
+        {
+          label: 'Risk Score',
+          data: scores,
+          borderColor: 'rgb(75, 192, 192)',
+          backgroundColor: 'rgba(75, 192, 192, 0.2)',
+          tension: 0.4,
+        },
+      ],
+    };
+  
+    const options = {
+      responsive: true,
+      plugins: {
+        legend: {
+          display: false,
+        },
       },
-    ],
-  };
-
-  const options = {
-    responsive: true,
-    plugins: {
-      legend: {
-        display: false,
+      scales: {
+        y: {
+          suggestedMin: 0.5,
+          suggestedMax: 1.0,
+        },
       },
-    },
-    scales: {
-      y: {
-        suggestedMin: 0.5,
-        suggestedMax: 1.0,
-      },
-    },
-  };
+    };
 
   return (
     <div className="p-6 bg-white shadow-md rounded-xl max-w-4xl mx-auto space-y-4">

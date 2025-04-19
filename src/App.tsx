@@ -9,12 +9,13 @@ import { useEffect, useState } from 'react';
 // Initial state type
 const initialPrediction: HeartPredictionData = {
   patient_id: 0,
-  resting_bp: 0,
-  cholesterol: 0,
-  max_heart_rate: 0,
-  oldpeak: 0,
-  prediction_score: 0,
-  prediction_label: 0,
+  age: 0,
+  gender: 0,
+  chest_pain_type: 0,
+  fasting_sugar: 0,
+  resting_ecg: 0,
+  exercise_angina: 0,
+  slope: 0,
 };
 
 
@@ -27,6 +28,8 @@ function App() {
   // For tracking the risk score over time
   const [scores, setScores] = useState<number[]>([]);
   const [labels, setLabels] = useState<string[]>([]);
+  const [predictionLabel, setPredictionLabel] = useState<string>('');
+
 
   useEffect(() => {
     const ws = new WebSocket('ws://localhost:6789');
@@ -35,18 +38,22 @@ function App() {
       const data = JSON.parse(event.data);
       //Real Time vital signs
       setHeartRate(data.max_heart_rate);
-setBloodPressure(data.resting_bp);
+      setBloodPressure(data.resting_bp);
 
 
-      // Prediction form
+      // Set prediction label
+    setPredictionLabel(data.prediction_label);  
+
+      // Patient Data form
     setPredictionData({
       patient_id: data.patient_id,
-      resting_bp: data.resting_bp,
-      cholesterol: data.cholesterol,
-      max_heart_rate: data.max_heart_rate,
-      oldpeak: data.oldpeak,
-      prediction_score: data.prediction_score,
-      prediction_label: data.prediction_label,
+    age: data.age,
+    gender: data.gender,
+    chest_pain_type: data.chest_pain_type,
+    fasting_sugar: data.fasting_sugar,
+    resting_ecg: data.resting_ecg,
+    exercise_angina: data.exercise_angina,
+    slope: data.slope,
     });
 
     // Update the risk score chart data
@@ -83,7 +90,7 @@ setBloodPressure(data.resting_bp);
           <RiskChart
             scores={scores}
             labels={labels}
-            predictionLabel={predictionData.prediction_label}
+            predictionLabel={predictionLabel}
           />
         </div>
       </div>

@@ -1,9 +1,10 @@
-export type HeartPredictionData = {
+export interface HeartPredictionData {
   patient_id: number;
-  resting_bp: number;
-  cholesterol: number;
-  max_heart_rate: number;
-  oldpeak: number;
-  prediction_score: number;
-  prediction_label: number;
-};
+  age: number;
+  gender: number;
+  chest_pain_type: number;
+  fasting_sugar: number;
+  resting_ecg: number;
+  exercise_angina: number;
+  slope: number;
+}
