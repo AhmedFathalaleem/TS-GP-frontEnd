@@ -1,0 +1,10 @@
+{
+  "patient_id": 12,
+  "resting_bp": 130,
+  "cholesterol": 220,
+  "max_heart_rate": 170,
+  "oldpeak": 2.3,
+  "prediction_score": 0.84,
+  "prediction_label": 1
+  }
+  
