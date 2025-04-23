@@ -45,8 +45,11 @@ export default function RiskChart({ scores, labels, predictionLabel }: RiskChart
       },
       scales: {
         y: {
-          suggestedMin: 0.5,
+          suggestedMin: 0.4,
           suggestedMax: 1.0,
+          ticks:{
+            stepSize: 0.2,
+          },
         },
       },
     };

@@ -16,7 +16,7 @@ conn = psycopg2.connect(
 conn.autocommit = True
 cur = conn.cursor()
 
-STATIC_PATIENT_ID = 14
+STATIC_PATIENT_ID = 15
 
 # Insert into dim_patient only once
 def insert_dim_patient(patient_id):
@@ -55,22 +55,59 @@ def insert_dim_time():
     cur.execute(query, values)
     return cur.fetchone()[0]
 
+
+
+
+
+
+
+
+baseline_vitals = {
+    "resting_bp": 120,
+    "cholesterol": 200,
+    "max_heart_rate": 150,
+    "oldpeak": 1.0
+}
+
+def fluctuate(value, min_val, max_val, max_delta):
+    delta = random.uniform(-max_delta, max_delta)
+    new_value = value + delta
+    return max(min_val, min(max_val, new_value))
+
+
+
+# Define this outside the function, as persistent state
+previous_vitals = baseline_vitals.copy()
+
 def insert_fact_prediction(patient_id, time_id):
-    query = """
-    INSERT INTO fact_predictions (patient_id, time_id, resting_bp, cholesterol, max_heart_rate, oldpeak, prediction_label, prediction_score)
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
-    """
+    global previous_vitals  # Keep track of previous state
+
+    # Simulate small fluctuations
+    previous_vitals["resting_bp"] = fluctuate(previous_vitals["resting_bp"], 90, 140, 3)
+    previous_vitals["cholesterol"] = fluctuate(previous_vitals["cholesterol"], 150, 250, 5)
+    previous_vitals["max_heart_rate"] = fluctuate(previous_vitals["max_heart_rate"], 100, 190, 4)
+    previous_vitals["oldpeak"] = round(fluctuate(previous_vitals["oldpeak"], 0.0, 4.0, 0.2), 1)
+
+    # Simulate label and score
+    prediction_label = 1 if previous_vitals["oldpeak"] > 2.5 or previous_vitals["resting_bp"] > 130 else 0
+    prediction_score = round(random.uniform(0.5, 1.0) if prediction_label else random.uniform(0.1, 0.5), 2)
+
+    query = """INSERT INTO fact_predictions (
+        patient_id, time_id, resting_bp, cholesterol, max_heart_rate, oldpeak, prediction_label, prediction_score
+    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);"""
+
     values = (
         patient_id,
         time_id,
-        random.randint(90, 200),  #BP
-        random.randint(100, 400),# Cholesterol
-        random.randint(70, 220), #Max Heart Rate
-        round(random.uniform(0.0, 6.0), 1),
-        random.randint(0, 1),
-        round(random.uniform(0.5, 1.0), 2)
+        int(previous_vitals["resting_bp"]),
+        int(previous_vitals["cholesterol"]),
+        int(previous_vitals["max_heart_rate"]),
+        previous_vitals["oldpeak"],
+        prediction_label,
+        prediction_score
     )
     cur.execute(query, values)
+
 
 def get_latest_prediction_data(patient_id):
     cur.execute("""
