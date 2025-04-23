@@ -1,9 +1,15 @@
-import asyncio
-import json
+from flask import Flask
+from flask_socketio import SocketIO
 import psycopg2
-import websockets
+import json
+import threading
+import time
 
-# Database connection
+# Flask app and SocketIO setup
+app = Flask(__name__)
+socketio = SocketIO(app, cors_allowed_origins="*")  # Allow all origins for testing
+
+# PostgreSQL connection
 conn = psycopg2.connect(
     host="localhost",
     dbname="DW",
@@ -65,34 +71,29 @@ def get_latest_prediction_data(patient_id):
         }
     return {}
 
-# WebSocket handler
-async def stream_data(websocket):
+# Background thread to emit data every 2 seconds
+def background_thread():
+    while True:
+        data = get_latest_prediction_data(STATIC_PATIENT_ID)
+        if data:
+            socketio.emit('prediction_update', data)
+        time.sleep(2)
+
+# Start background thread when a client connects
+@socketio.on('connect')
+def handle_connect():
+    print("✅ Client connected")
+    threading.Thread(target=background_thread).start()
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    print("🔌 Client disconnected")
+
+# Run the server
+if __name__ == '__main__':
     try:
-        while True:
-            data = get_latest_prediction_data(STATIC_PATIENT_ID)
-            if data:
-                await websocket.send(json.dumps(data))
-            await asyncio.sleep(2)
-    except websockets.exceptions.ConnectionClosedOK:
-        print("🔌 Client disconnected (normal)")
-    except websockets.exceptions.ConnectionClosedError as e:
-        print(f"❌ Unexpected WebSocket close: {e}")
-    except Exception as e:
-        print(f"⚠️ Other error: {e}")
-
-
-# Main entry
-async def main():
-    async with websockets.serve(stream_data, "localhost", 6789):
-        print("🚀 WebSocket server is running on ws://localhost:6789")
-        await asyncio.Future()  # run forever
-
-
-if __name__ == "__main__":
-    try:
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        print("⛔ WebSocket stopped by user.")
+        print("🚀 Flask-SocketIO server running on http://localhost:5000")
+        socketio.run(app, host="0.0.0.0", port=5000)
     finally:
         cur.close()
         conn.close()
