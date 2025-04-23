@@ -1,8 +1,6 @@
 import asyncio
-import random
 import json
 import psycopg2
-from datetime import datetime
 import websockets
 
 # Database connection
@@ -16,98 +14,7 @@ conn = psycopg2.connect(
 conn.autocommit = True
 cur = conn.cursor()
 
-STATIC_PATIENT_ID = 15
-
-# Insert into dim_patient only once
-def insert_dim_patient(patient_id):
-    query = """
-    INSERT INTO dim_patient (patient_id, age, gender, chest_pain_type, fasting_sugar, resting_ecg, exercise_angina, slope)
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-    ON CONFLICT (patient_id) DO NOTHING;
-    """
-    values = (
-        patient_id,
-        random.randint(30, 80),
-        random.randint(0, 1),
-        random.randint(0, 3),
-        random.randint(0, 1),
-        random.randint(0, 2),
-        random.randint(0, 1),
-        random.randint(1, 3)
-    )
-    cur.execute(query, values)
-
-def insert_dim_time():
-    now = datetime.now()
-    query = """
-    INSERT INTO dim_time (date, day, month, year, hour, day_of_week)
-    VALUES (%s, %s, %s, %s, %s, %s)
-    RETURNING time_id;
-    """
-    values = (
-        now.date(),
-        now.day,
-        now.month,
-        now.year,
-        now.hour,
-        now.weekday()
-    )
-    cur.execute(query, values)
-    return cur.fetchone()[0]
-
-
-
-
-
-
-
-
-baseline_vitals = {
-    "resting_bp": 120,
-    "cholesterol": 200,
-    "max_heart_rate": 150,
-    "oldpeak": 1.0
-}
-
-def fluctuate(value, min_val, max_val, max_delta):
-    delta = random.uniform(-max_delta, max_delta)
-    new_value = value + delta
-    return max(min_val, min(max_val, new_value))
-
-
-
-# Define this outside the function, as persistent state
-previous_vitals = baseline_vitals.copy()
-
-def insert_fact_prediction(patient_id, time_id):
-    global previous_vitals  # Keep track of previous state
-
-    # Simulate small fluctuations
-    previous_vitals["resting_bp"] = fluctuate(previous_vitals["resting_bp"], 90, 140, 3)
-    previous_vitals["cholesterol"] = fluctuate(previous_vitals["cholesterol"], 150, 250, 5)
-    previous_vitals["max_heart_rate"] = fluctuate(previous_vitals["max_heart_rate"], 100, 190, 4)
-    previous_vitals["oldpeak"] = round(fluctuate(previous_vitals["oldpeak"], 0.0, 4.0, 0.2), 1)
-
-    # Simulate label and score
-    prediction_label = 1 if previous_vitals["oldpeak"] > 2.5 or previous_vitals["resting_bp"] > 130 else 0
-    prediction_score = round(random.uniform(0.5, 1.0) if prediction_label else random.uniform(0.1, 0.5), 2)
-
-    query = """INSERT INTO fact_predictions (
-        patient_id, time_id, resting_bp, cholesterol, max_heart_rate, oldpeak, prediction_label, prediction_score
-    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);"""
-
-    values = (
-        patient_id,
-        time_id,
-        int(previous_vitals["resting_bp"]),
-        int(previous_vitals["cholesterol"]),
-        int(previous_vitals["max_heart_rate"]),
-        previous_vitals["oldpeak"],
-        prediction_label,
-        prediction_score
-    )
-    cur.execute(query, values)
-
+STATIC_PATIENT_ID = 12
 
 def get_latest_prediction_data(patient_id):
     cur.execute("""
@@ -158,40 +65,34 @@ def get_latest_prediction_data(patient_id):
         }
     return {}
 
-
-
-
-# Background task: Insert data every 2s
-async def generate_data():
-    insert_dim_patient(STATIC_PATIENT_ID)
-    while True:
-        time_id = insert_dim_time()
-        insert_fact_prediction(STATIC_PATIENT_ID, time_id)
-        print(f"✅ Inserted prediction for patient_id {STATIC_PATIENT_ID} and time_id {time_id}")
-        await asyncio.sleep(2)
-
 # WebSocket handler
 async def stream_data(websocket):
-    while True:
-        data = get_latest_prediction_data(STATIC_PATIENT_ID)
-        if data:
-            await websocket.send(json.dumps(data))
-        await asyncio.sleep(2)
+    try:
+        while True:
+            data = get_latest_prediction_data(STATIC_PATIENT_ID)
+            if data:
+                await websocket.send(json.dumps(data))
+            await asyncio.sleep(2)
+    except websockets.exceptions.ConnectionClosedOK:
+        print("🔌 Client disconnected (normal)")
+    except websockets.exceptions.ConnectionClosedError as e:
+        print(f"❌ Unexpected WebSocket close: {e}")
+    except Exception as e:
+        print(f"⚠️ Other error: {e}")
 
 
 # Main entry
 async def main():
-    websocket_server = websockets.serve(stream_data, "localhost", 6789)
-    await asyncio.gather(
-        websocket_server,
-        generate_data()
-    )
+    async with websockets.serve(stream_data, "localhost", 6789):
+        print("🚀 WebSocket server is running on ws://localhost:6789")
+        await asyncio.Future()  # run forever
+
 
 if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        print("⛔ Stopped by user.")
+        print("⛔ WebSocket stopped by user.")
     finally:
         cur.close()
         conn.close()
