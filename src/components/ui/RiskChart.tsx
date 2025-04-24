@@ -23,12 +23,17 @@ export default function RiskChart({ scores, labels, predictionLabel }: RiskChart
     const riskText = isHighRisk ? 'HIGH RISK' : 'LOW RISK';
     const riskColor = isHighRisk ? 'bg-red-200 text-red-800' : 'bg-green-200 text-green-800';
   
+    //Number of visible points in the x-axis on the chart
+    const VISIBLE_POINTS = 10;
+    const slicedScore = scores.slice(-VISIBLE_POINTS);
+    const slicedLabels = labels.slice(-VISIBLE_POINTS);
+
     const data = {
-      labels,
+      labels: slicedLabels,
       datasets: [
         {
           label: 'Risk Score',
-          data: scores,
+          data: slicedScore,
           borderColor: 'rgb(75, 192, 192)',
           backgroundColor: 'rgba(75, 192, 192, 0.2)',
           tension: 0.4,
