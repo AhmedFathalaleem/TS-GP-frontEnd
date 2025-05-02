@@ -40,6 +40,7 @@ def get_latest_prediction_data(patient_id):
             f.prediction_score,
             f.prediction_label,
             t.day,
+            t.month,
             t.hour
         FROM dim_patient p
         JOIN fact_predictions f ON p.patient_id = f.patient_id
@@ -67,17 +68,26 @@ def get_latest_prediction_data(patient_id):
             "prediction_score": row[12],
             "prediction_label": row[13],
             "day": row[14],
-            "hour": row[15],
+            "month": row[15],
+            "hour": row[16],
         }
     return {}
 
 # Background thread to emit data every 2 seconds
 def background_thread():
+    last_seen_score = None
     while True:
         data = get_latest_prediction_data(STATIC_PATIENT_ID)
         if data:
             socketio.emit('prediction_update', data)
+
+            # If it's a new at-risk prediction
+            if data["prediction_score"] >= 0.8 and data["prediction_score"] != last_seen_score:
+                socketio.emit('at_risk_alert', data)
+                last_seen_score = data["prediction_score"]
+
         time.sleep(2)
+
 
 # Start background thread when a client connects
 @socketio.on('connect')

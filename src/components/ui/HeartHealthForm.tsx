@@ -21,15 +21,11 @@ export function HeartHealthForm({ data }: Props) {
           { label: "Resting ECG", value: data.resting_ecg },
           { label: "Exercise Angina", value: data.exercise_angina === 1 ? "Yes" : "No" },
           { label: "Slope", value: data.slope },
-          { label: "Day", value: data.day },
-          {
-            label: "Hour",
-            value: `${(data.hour % 12 || 12)}:00 ${data.hour < 12 ? "AM" : "PM"}`
-          }
+          
 
         ].map((field) => (
           <div key={field.label}>
-            <Label className="text-gray-600">{field.label}</Label>
+            <Label className="text-gray-600 text-lg">{field.label}</Label>
             <Input
               className="mt-1"
               value={field.value}

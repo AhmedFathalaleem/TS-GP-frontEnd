@@ -1,41 +1,38 @@
 import React from 'react';
 
 interface NavBarProps {
-  setActiveSection: React.Dispatch<React.SetStateAction<number>>;
+  setActiveSection: (section: number) => void;
+  newAtRiskNotification: boolean;
 }
 
-const NavBar: React.FC<NavBarProps> = ({ setActiveSection }) => {
+
+const NavBar: React.FC<NavBarProps> = ({ setActiveSection, newAtRiskNotification }) => {
   return (
-    <div className="p-6">
-      <h2 className="text-2xl text-white font-semibold mb-4">Navigation</h2>
-      <ul>
+    <div className="flex flex-col w-64 bg-[#4169E1] text-white min-h-screen p-4">
+      <h1 className="text-2xl font-bold mb-6 text-center">Heart Attack Prediction App</h1>
+      <div className="border-t border-white opacity-50 mx-2" />
+      <ul className="space-y-4">
         <li
-          className="cursor-pointer hover:bg-gray-700 p-3 rounded text-lg"
+          className="cursor-pointer hover:bg-[#8fa9f7] hover:text-black p-3 rounded text-lg font-bold"
           onClick={() => setActiveSection(0)}
         >
-          Dashboard
+          Home
         </li>
+        
+        
         <li
-          className="cursor-pointer hover:bg-gray-700 p-3 rounded text-lg"
-          onClick={() => setActiveSection(1)}
-        >
-          Profile
-        </li>
-        <li
-          className="cursor-pointer hover:bg-gray-700 p-3 rounded text-lg"
+          className="relative cursor-pointer hover:bg-[#8fa9f7] hover:text-black p-3 rounded text-lg font-bold"
           onClick={() => setActiveSection(2)}
         >
           Messages
-        </li>
-        <li
-          className="cursor-pointer hover:bg-gray-700 p-3 rounded text-lg"
-          onClick={() => setActiveSection(3)}
-        >
-          Settings
+          {newAtRiskNotification && (
+            <span className="absolute top-2 right-3 w-3 h-3 bg-red-500 rounded-full"></span>
+          )}
         </li>
       </ul>
     </div>
   );
 };
+
 
 export default NavBar;
