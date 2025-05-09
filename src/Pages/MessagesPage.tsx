@@ -13,7 +13,7 @@ type Props = {
 const MessagesPage: React.FC<Props> = ({ messages }) => {
   return (
     <div>
-      <h1 className="text-4xl font-semibold text-center mb-6">Heart Attack Prediction Messages</h1>
+      
       <div className="overflow-x-auto">
         <table className="min-w-full table-auto border border-gray-200">
           <thead className="bg-white">

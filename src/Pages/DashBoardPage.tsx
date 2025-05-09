@@ -21,9 +21,10 @@ const DashboardPage: React.FC<DashboardPageProps> = ({
   predictionData
 }) => (
   <div>
-    <h1 className="text-4xl font-semibold text-center mb-6">Heart Attack Prediction</h1>
+    <div className='w-full h-13  bg-white'></div>
+    <h1 className="text-4xl font-semibold text-center mt-2 mr-120">Heart Attack Prediction</h1>
 
-    <div className="flex space-x-6">
+    <div className="flex p-6 space-x-6">
       <div className="flex flex-col w-2/3 space-y-6">
         <div className="flex space-x-6">
           <StatCard label="Heart Rate" value={heartRate} icon="❤️" />

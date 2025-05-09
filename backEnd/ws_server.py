@@ -1,7 +1,6 @@
 from flask import Flask
 from flask_socketio import SocketIO
 import psycopg2
-import json
 import threading
 import time
 
@@ -9,20 +8,23 @@ import time
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")  # Allow all origins for testing
 
-# PostgreSQL connection
-conn = psycopg2.connect(
-    host="localhost",
-    dbname="DW",
-    user="postgres",
-    password="189569420",
-    port="5432"
-)
-conn.autocommit = True
-cur = conn.cursor()
+# PostgreSQL connection setup
+def create_connection():
+    return psycopg2.connect(
+        host="localhost",
+        dbname="DW",
+        user="postgres",
+        password="189569420",
+        port="5432"
+    )
 
-STATIC_PATIENT_ID = 12
+# Hardcoded patient ID for fetching prediction data
+STATIC_PATIENT_ID = 10  # Same ID used in pypostgres.py
 
+# Function to fetch the latest prediction data for the patient
 def get_latest_prediction_data(patient_id):
+    conn = create_connection()
+    cur = conn.cursor()
     cur.execute("""
         SELECT 
             p.patient_id,
@@ -51,6 +53,8 @@ def get_latest_prediction_data(patient_id):
     """, (patient_id,))
     
     row = cur.fetchone()
+    cur.close()
+    conn.close()
     if row:
         return {
             "patient_id": row[0],
@@ -77,6 +81,7 @@ def get_latest_prediction_data(patient_id):
 def background_thread():
     last_seen_score = None
     while True:
+        # Fetch the latest prediction data for the static patient ID
         data = get_latest_prediction_data(STATIC_PATIENT_ID)
         if data:
             socketio.emit('prediction_update', data)
@@ -105,5 +110,4 @@ if __name__ == '__main__':
         print("🚀 Flask-SocketIO server running on http://localhost:5000")
         socketio.run(app, host="0.0.0.0", port=5000)
     finally:
-        cur.close()
-        conn.close()
+        print("Server shutting down...")
