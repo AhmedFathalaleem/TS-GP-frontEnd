@@ -73,7 +73,7 @@ export default function RiskChart({
     scales: {
       x: {
         ticks: {
-          autoSkip: true,
+          autoSkip: false,
           maxTicksLimit: VISIBLE_POINTS,
         },
       },

@@ -15,7 +15,7 @@ conn.autocommit = True
 cur = conn.cursor()
 
 # Use a static patient ID
-STATIC_PATIENT_ID = 10  # Replace with a valid patient ID from your database
+STATIC_PATIENT_ID = 31  # Replace with a valid patient ID from your database
 
 def insert_dim_patient(patient_id):
     query = """
