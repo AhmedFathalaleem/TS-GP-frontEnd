@@ -58,7 +58,7 @@ export default function RiskChart({
   const VISIBLE_POINTS = 10;
   
   const latestScore = scores[scores.length - 1] ?? 0;
-  const isHighRisk = latestScore >= 0.8;
+  const isHighRisk = latestScore >= 0.9; //High risk threshold
   const riskText = isHighRisk ? 'HIGH RISK' : 'LOW RISK';
   const riskColor = isHighRisk ? 'bg-red-200 text-red-800' : 'bg-green-200 text-green-800';
 
@@ -70,7 +70,7 @@ export default function RiskChart({
     plugins: {
       legend: { display: false },
     },
-    scales: {
+    scales: { // Configure x and y axes
       x: {
         ticks: {
           autoSkip: false,
@@ -81,7 +81,7 @@ export default function RiskChart({
         suggestedMin: 0.4,
         suggestedMax: 1.0,
         ticks: {
-          stepSize: 0.2,
+          stepSize: 0.1, // Adjust step size for y-axis
         },
       },
     },
