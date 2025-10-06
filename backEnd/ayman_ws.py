@@ -35,23 +35,9 @@ def get_latest_prediction_data(patient_id):
     cur = conn.cursor()
     cur.execute("""
         SELECT 
-            p.patient_id,
-            p.age,
-            p.gender,
-            p.chest_pain_type,
-            p.fasting_sugar,
-            p.resting_ecg,
-            p.exercise_angina,
-            p.slope,
-            f.resting_bp,
-            f.cholesterol,
-            f.max_heart_rate,
-            f.oldpeak,
-            f.prediction_score,
-            f.prediction_label,
-            t.day,
-            t.month,
-            t.hour
+            p.patient_id, p.age, p.gender, p.chest_pain_type, p.fasting_sugar, p.resting_ecg, p.exercise_angina,
+            p.slope, f.resting_bp, f.cholesterol, f.max_heart_rate, f.oldpeak, f.prediction_score, f.prediction_label,
+            t.day, t.month, t.hour
         FROM dim_patient p
         JOIN fact_predictions f ON p.patient_id = f.patient_id
         JOIN dim_time t ON f.time_id = t.time_id
@@ -64,23 +50,11 @@ def get_latest_prediction_data(patient_id):
     conn.close()
     if row:
         return {
-            "patient_id": row[0],
-            "age": row[1],
-            "gender": row[2],
-            "chest_pain_type": row[3],
-            "fasting_sugar": row[4],
-            "resting_ecg": row[5],
-            "exercise_angina": row[6],
-            "slope": row[7],
-            "resting_bp": row[8],
-            "cholesterol": row[9],
-            "max_heart_rate": row[10],
-            "oldpeak": row[11],
-            "prediction_score": row[12],
-            "prediction_label": row[13],
-            "day": row[14],
-            "month": row[15],
-            "hour": row[16],
+            "patient_id": row[0], "age": row[1], "gender": row[2], "chest_pain_type": row[3],
+            "fasting_sugar": row[4], "resting_ecg": row[5], "exercise_angina": row[6], "slope": row[7],
+            "resting_bp": row[8], "cholesterol": row[9], "max_heart_rate": row[10],
+            "oldpeak": row[11], "prediction_score": row[12], "prediction_label": row[13],
+            "day": row[14], "month": row[15], "hour": row[16],
         }
     return {}
 
@@ -89,7 +63,7 @@ def background_thread():
     while True:
         patient_id = get_latest_patient_id()
         data = get_latest_prediction_data(patient_id)
-        if data and data['prediction_score'] >= 0.8:
+        if data and data['prediction_score'] >= 0.9:
             socketio.emit('at_risk_alert', data)
         socketio.emit('prediction_update', data)
         time.sleep(2)

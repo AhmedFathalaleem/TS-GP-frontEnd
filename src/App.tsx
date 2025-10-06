@@ -29,6 +29,7 @@ const initialPrediction: HeartPredictionData = {
 };
 
 function App() {
+  //State Variables
   const [heartRate, setHeartRate] = useState<number>(0);
   const [bloodPressure, setBloodPressure] = useState<number>(0);
   const [predictionData, setPredictionData] = useState<HeartPredictionData>(initialPrediction);
@@ -70,7 +71,7 @@ socket.on('prediction_update', (data) => {
 });
 
 
-    socket.on('at_risk_alert', (data) => {
+    socket.on('at_risk_alert', (data) => { // Handle at-risk alerts
       setAtRiskMessages((prev) => [...prev, data]);
       setNewAtRiskNotification(true);
     });

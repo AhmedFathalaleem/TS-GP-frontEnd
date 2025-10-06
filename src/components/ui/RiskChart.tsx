@@ -55,7 +55,7 @@ export default function RiskChart({
     ],
   });
 
-  const VISIBLE_POINTS = 10;
+  const VISIBLE_POINTS = 10; // Number of points to display in the chart
   
   const latestScore = scores[scores.length - 1] ?? 0;
   const isHighRisk = latestScore >= 0.9; //High risk threshold
